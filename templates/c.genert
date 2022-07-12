@@ -1,0 +1,50 @@
+TEMPLATE "c"
+	DIR "build"
+	DEND
+
+	DIR "src"
+		FILE "main.c"
+/*
+ * Created at #!#TIME#!#
+*/
+#include <stdio.h>
+
+int main(int argc, const char *argv[]) {
+	printf("Hello World!\n");
+	return 0;
+}
+		FEND
+	DEND
+
+	FILE "Makefile"
+CC = clang
+PNAME = c
+
+SRC  = $(shell find src -name "*.c")
+OBJ  = $(SRC:.c=.o)
+BIN_DIR = build
+BIN = $(BIN_DIR)/#!#PNAME#!#
+
+INCFLAGS  = -Isrc/
+
+CCFLAGS += $(INCFLAGS)
+CCFLAGS += -O0
+CCFLAGS += -Wall
+
+LDFLAGS  = $(INCFLAGS)
+
+all: build
+
+run: build
+	$(BIN) $*
+
+build: $(OBJ)
+	$(CC) $(CCFLAGS) -ggdb -o $(BIN) $(filter %.o,$^) $(LDFLAGS)
+
+clean:
+	rm $(BIN_DIR)/* $(OBJ)
+
+%.o: %.c
+	$(CC) -ggdb -o $@ -c $< $(CCFLAGS)
+	FEND
+TEND
