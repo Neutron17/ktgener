@@ -1,3 +1,5 @@
+package com.neutron.ktgener
+
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -38,28 +40,35 @@ class NDirectory : IObject {
 	}
 }
 
-fun loadTemplate(NFileName: String): NDirectory {
+fun loadTemplate(fileName: String, projectName: String, userName: String): NDirectory {
 	val ret = NDirectory()
-	val lines = File(NFileName).readLines().toMutableList()
+	val lines = File(fileName).readLines().toMutableList()
 	val firstLine = lines[0].lowercase().split(' ')
 	assert(firstLine[0] == "template")
-	ret.name = firstLine[1].replace("\"", "")
+	ret.name = projectName.replace("\"", "")
 	lines.forEach {
 		lines[lines.indexOf(it)] =
 			it.replace("#!#PNAME#!#", ret.name)
 				.replace(
 					"#!#TIME#!#",
 					LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString()
-				);
+				)
+				.replace("#!#UNAME#!#", userName)
 	}
-	Path(ret.name).createDirectory()
+	lines.forEach(::println)
+	try {
+		Path(ret.name).createDirectory()
+	} catch (e: java.nio.file.FileAlreadyExistsException) {
+		System.err.println("Directory ${e.file} already exists")
+	}
 	var i = 0
 	var file = File("out.txt").bufferedWriter()
 	val dirs = Stack<NDirectory>()
 	dirs.add(ret)
 	while (i < lines.size) {
-		val line = lines[i].split(' ').toMutableList()
-		line.forEach { line[line.indexOf(it)] = it.trim() }
+		val line = lines[i].trim().split(' ').toMutableList()
+		//line.forEach { line[line.indexOf(it)] = it.trim() }
+		//println(line)
 		when (line[0].lowercase()) {
 			"tend" -> {
 				file.flush()
@@ -71,7 +80,12 @@ fun loadTemplate(NFileName: String): NDirectory {
 				dirs.forEach {
 					path += it.name + "/"
 				}
-				Path(path + line[1].replace("\"", "")).createDirectory()
+				println(path);
+				try {
+					Path(path + line[1].replace("\"", "")).createDirectory()
+				} catch (e: java.nio.file.FileAlreadyExistsException) {
+					System.err.println("Directory ${e.file} already exists")
+				}
 				dirs.add(NDirectory(line[1].replace("\"", ""), dirs.peek()))
 			}
 			"file" -> {
