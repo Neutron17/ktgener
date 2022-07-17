@@ -40,6 +40,8 @@ class MVNTest : TestI {
 		assertTrue(File("$projectName/src/main/java/com/$userName").isDirectory, "Hierarchy check failed")
 		assertTrue(File("$projectName/src/main/java/com/$userName/$projectName").isDirectory, "Hierarchy check failed")
 		assertTrue(File("$projectName/src/main/java/com/$userName/$projectName/Main.java").isFile, "Hierarchy check failed")
+
+
 	}
 	@Test(dependsOnMethods = ["hierarchytest"])
 	fun pomContentTest() {
@@ -50,6 +52,10 @@ class MVNTest : TestI {
 	fun mainContentTest() {
 		val lines = File("$projectName/src/main/java/com/$userName/$projectName/Main.java").bufferedReader().readLines()
 		assertEquals(lines, main.split('\n'), "Main.java doesn't match")
+	}
+	@Test(dependsOnMethods = ["pomContentTest", "mainContentTest"])
+	fun final() {
+		println(File(projectName).deleteRecursively())
 	}
 	lateinit var main: String
 
